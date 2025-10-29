@@ -1,0 +1,59 @@
+model = 'YieldModel';
+bdclose all
+new_system(model)
+open_system(model)
+
+% Блоки
+add_block('simulink/Commonly Used Blocks/Integrator', [model '/Integrator_Y'], ...
+    'InitialCondition', 'Y0', 'Position', [100 100 130 130]);
+
+add_block('simulink/Commonly Used Blocks/Gain', [model '/Gain_1_Ymax'], ...
+    'Gain', '1/Ymax', 'Position', [200 50 230 80]);
+
+add_block('simulink/Commonly Used Blocks/Product', [model '/Y_div_Ymax'], ...
+    'Position', [300 50 330 80]);
+
+add_block('simulink/Commonly Used Blocks/Constant', [model '/Const_1'], ...
+    'Value', '1', 'Position', [200 150 230 180]);
+
+add_block('simulink/Commonly Used Blocks/Sum', [model '/1_minus_Y_div_Ymax'], ...
+    'Inputs', '+-', 'Position', [400 100 430 130]);
+
+add_block('simulink/Commonly Used Blocks/Product', [model '/Y_times_expr'], ...
+    'Position', [500 100 530 130]);
+
+add_block('simulink/Commonly Used Blocks/Gain', [model '/Gain_r'], ...
+    'Gain', 'r', 'Position', [600 100 630 130]);
+
+add_block('simulink/Commonly Used Blocks/Gain', [model '/Gain_F'], ...
+    'Gain', 'F', 'Position', [650 100 680 130]);
+
+add_block('simulink/Commonly Used Blocks/Gain', [model '/Gain_A'], ...
+    'Gain', 'A', 'Position', [700 100 730 130]);
+
+add_block('simulink/Commonly Used Blocks/Scope', [model '/Scope'], ...
+    'Position', [850 100 880 130]);
+
+add_block('simulink/Sinks/To Workspace', [model '/ToWorkspace'], ...
+    'VariableName', 'Y_out', 'SaveFormat', 'StructureWithTime', 'Position', [800 150 850 180]);
+
+% Соединения
+add_line(model, 'Integrator_Y/1', 'Gain_1_Ymax/1');
+add_line(model, 'Integrator_Y/1', 'Y_div_Ymax/1');
+add_line(model, 'Gain_1_Ymax/1', 'Y_div_Ymax/2');
+add_line(model, 'Y_div_Ymax/1', '1_minus_Y_div_Ymax/2');
+add_line(model, 'Const_1/1', '1_minus_Y_div_Ymax/1');
+add_line(model, 'Integrator_Y/1', 'Y_times_expr/1');
+add_line(model, '1_minus_Y_div_Ymax/1', 'Y_times_expr/2');
+add_line(model, 'Y_times_expr/1', 'Gain_r/1');
+add_line(model, 'Gain_r/1', 'Gain_F/1');
+add_line(model, 'Gain_F/1', 'Gain_A/1');
+add_line(model, 'Gain_A/1', 'Integrator_Y/1');  % 🔁 Обратная связь!
+add_line(model, 'Integrator_Y/1', 'Scope/1');
+add_line(model, 'Integrator_Y/1', 'ToWorkspace/1');
+
+% Время моделирования
+set_param(model, 'StopTime', '100')
+
+% Сохранение
+save_system(model)
